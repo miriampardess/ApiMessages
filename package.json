@@ -10,11 +10,18 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@hapi/joi": "^15.1.1",
+    "dotenv": "^10.0.0",
+    "esm": "^3.2.25",
     "express": "^4.17.1",
     "joi": "^17.4.2",
     "logger": "0.0.1",
     "moment": "^2.29.1",
     "oracledb": "^5.2.0",
     "winston": "^3.3.3"
+  },
+  "type": "module",
+  "devDependencies": {
+    "typescript": "^4.4.4"
   }
 }

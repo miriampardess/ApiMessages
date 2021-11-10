@@ -1,4 +1,6 @@
-const oracledb = require('oracledb');
+//const oracledb = require('oracledb');
+import oracledb from 'oracledb';
+
 function OracledbClient(){
     try {
         oracledb.initOracleClient({ libDir: 'C:\lib\instantclient_21_3' }); 
@@ -9,7 +11,9 @@ function OracledbClient(){
     }
 }
 
-module.exports = {
-    OracledbClient
-}
+// module.exports = {
+//     OracledbClient
+// }
+export default {OracledbClient};
+
 

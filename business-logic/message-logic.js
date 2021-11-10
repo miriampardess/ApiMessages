@@ -1,113 +1,95 @@
-//Logic of information
-const { date } = require("joi");
-const dal = require("../data-access-layer/dal");
-const moment = require("moment");
 
-// Get All MessagesAsync 
-async function getAllMessagesAsync(from_name, to_name, createdat) {
+import { dal } from "../data-access-layer/dal.js";
+import moment from "moment";
+import  logger  from '../logger.js';
 
-  return new Promise(function (resolve, reject) {
+//Get All MessagesAsync 
+export async function getAllMessagesAsync(message) {
+  try {
+    let sql = `SELECT * FROM MESSAGES`
+    let bindParams = {};
 
-    let sql = `SELECT * FROM messages WHERE `
+    if (message.from_name || message.to_name || message.created_at) {
+      sql += ' WHERE';
+      let filter = false;
 
-    if (from_name || to_name || createdat) {
+      if (message.from_name !== undefined) {
+        filter = true;
+        bindParams.from_name = message.from_name;
+        sql += ` FROM_NAME = :from_name`
 
-      if (from_name !== undefined) {
-        sql += `from_name= '${from_name}' AND `
       }
-      if (to_name !== undefined) {
-        sql += `to_name= '${to_name}' AND `
+      if (message.to_name !== undefined) {
+        if (filter) { sql += ' AND'; }
+        bindParams.to_name = message.to_name;
+        sql += ` TO_NAME = :to_name`
       }
-      if (createdat !== undefined) {
-        sql += `created_at= '${createdat}' AND `
+      if (message.created_at !== undefined) {
+        if (filter) { sql += ' AND'; }
+        bindParams.created_at = message.created_at;
+        sql += ` created_at = :created_at`
+
       }
-      sql = sql.substr(0, sql.length - 4);
     }
-    else {
-      // Sort in ascending order
-      sql = sql.substr(0, sql.length - 7);
-      sql += ` order by id`
-    }
 
-    var messages;
+    let messages = await dal(sql, bindParams, null);
 
-    dal(sql, (res, rej) => {
-      messages = res;
+    return messages;
+  }
+  catch (err) {
 
-      if (messages) {
-        return resolve(messages);
+    throw new Error(err);
 
-      } return reject("err");
+  }
 
-    });
-
-  })
 }
 //Get One MessageAsync
-async function getOneMessageAsync(key) {
 
-  return new Promise(function (resolve, reject) {
-    const sql = `SELECT * FROM messages WHERE key = '${key}'`;
+export const getOneMessageAsync = async (key) => {
+  try {
+    let bindParams = { key: key };
+    const sql = `SELECT * FROM messages WHERE KEY = :key`;
+    let messages = await dal(sql, bindParams, null);
+    return messages;
+  }
+  catch (err) {
+    throw new Error(err);
+  }
 
-    var messages;
-    dal(sql, (res, rej) => {
-
-      messages = res;
-
-
-      if (messages) {
-        return resolve(messages);
-
-      } return reject("err");
-    });
-
-  })
 }
+
 //Add One MessagesAsync
-async function addOneMessageAsync(message) {
-  return new Promise(function (resolve, reject) {
+export async function addOneMessageAsync(message) {
 
+  try {
     const addKey = makeid(4);
+    let createdAt, updatedAt;
+    createdAt = updatedAt = moment().format("DD-MMMM-YYYY hh:mm:ss.mmmmmmmm");
 
-    let createdAt = moment().format("DD-MMMM-YYYY hh:mm:ss.mmmmmmmm");
-    let updatedAt = moment().format("DD-MMMM-YYYY hh:mm:ss.mmmmmmmm");
-
-
-    const sql = `INSERT INTO messages (key,from_Name,to_name,message,created_at,Updated_at) VALUES('${addKey}','${message.from_name}','${message.to_name}','${message.message}','${createdAt}','${updatedAt}')`;
-
-    var info;
-    dal(sql, (res, rej) => {
-      info = res;
-
-      if (info) {
-        return resolve(info);
-
-      } return reject("err");
-    });
-
-  })
+    let bindParams = { Key: addKey, from_name: message.from_name, to_name: message.to_name, message: message.message, created_at: createdAt, updated_at: updatedAt }
+    const sql = 'INSERT INTO MESSAGES(KEY,FROM_NAME,TO_NAME,MESSAGE,CREATED_AT,UPDATED_AT)VALUES(:Key, :from_Name, :to_name, :message, :created_at, :updated_at)';
+    let info = await dal(sql, bindParams, "post");
+    return info;
+  }
+  catch (err) {
+    throw new Error(err);
+  }
 }
 
 //Delete MessageAsync
-async function deleteMessageAsync(key) {
-  return new Promise(function (resolve, reject) {
+export async function deleteMessageAsync(key) {
 
-    const sql = `delete from messages where key= '${key}'`;
+  try {
+    let bindParams = { key: key };
+    const sql = `delete from messages where KEY = :key`;
+    let messages = await dal(sql, bindParams, "delete");
+    return messages;
+  }
+  catch (err) {
+    throw new Error(err);
 
-    var messages;
-
-    dal(sql, (res, rej) => {
-      messages = res;
-
-      if (messages) {
-        return resolve(messages);
-
-      } return reject("err");
-
-    });
-  })
+  }
 }
-
 //Create the key automatically
 function makeid(length) {
   var key = '';
@@ -119,12 +101,4 @@ function makeid(length) {
   }
   return key;
 }
-
-//exports
-module.exports = {
-  getAllMessagesAsync,
-  getOneMessageAsync,
-  addOneMessageAsync,
-  deleteMessageAsync
-};
 

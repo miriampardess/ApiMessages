@@ -1,64 +1,38 @@
-
-var express = require('express');
-var oracledb = require('oracledb');
-var app = express();
-const dbconfig = require("../dbconfig.js");
-// Get a non-pooled connection
+import oracledb from 'oracledb';
+import dotenv from 'dotenv';
 oracledb.outFormat = oracledb.OUT_FORMAT_ARRAY;
-const Message = require("../models/message");
-const logger = require("../log/logger");
+dotenv.config();
+import logger from '../logger.js';
 
-var Succeeded = false;
+await oracledb.createPool({
+    user: process.env.USER,
+    password: process.env.PASSWORD,
+    connectString: process.env.CONNECTSTRING,
+    poolAlias: 'hrpool'
 
-const executeAsync = async (sql, res) => {
-    let error;
-    //let user;
+});
 
-    oracledb.getConnection(
-        {
-            user: dbconfig.user,
-            password: dbconfig.password,
-            connectString: dbconfig.connectString
-        },
+const connection = await oracledb.getConnection('hrpool');
 
-        async function (err, connection) {
-            if (err) {
-                error = err;
-                console.log("Error connecting database ... " + error);
-                logger.error("Error connecting database ... " + error);
+export const dal = async (sql, bindParams, fromPostDelet) => {
 
-                return;
-            }
-            console.log("Database is connected ... ");
-            logger.info("Database is connected ... ");
+    try {
+        let result;
+        if (fromPostDelet) {
 
-            let list = await connection.execute(sql, [], { autoCommit: true }, async function (err, result) {
-                if (err) {
-                    error = err;
-                    return;
-                }
+            result = await connection.execute(sql, bindParams, { outFormat: oracledb.OBJECT, autoCommit: true });
+        } else {
 
-                error = null;
+            result = await connection.execute(sql, bindParams, { outFormat: oracledb.OBJECT });
 
-                connection.close(async function (err) {
-                    if (err) { console.log(err); }
-
-                });
-                if (result.rows) {
-                    list = result.rows;
-                    if (result.rows.length !== 0) {
-                        return res(list);
-                    } else {
-                        Succeeded = false;
-                        return res(Succeeded);
-                    }
-                } else {
-                    Succeeded = true;
-                    return res(Succeeded);
-                }
-            })
         }
-    );
+        return result;
+
+    }
+    catch (err) {
+
+      //  logger.logger.error(err);
+        throw new Error(err);
+    }
 }
 
-module.exports = executeAsync;

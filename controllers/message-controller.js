@@ -1,84 +1,127 @@
 //Brings and returns information from data bites
-const express = require("express");
-const { date } = require("joi");
-const messageslogic = require("../business-logic/message-logic");
-const Message = require("../models/message");
-const router = express.Router();
+import express from "express";
+//import { date } from "joi";
+import { getAllMessagesAsync, getOneMessageAsync, addOneMessageAsync, deleteMessageAsync } from "../business-logic/message-logic.js";
+import { Message } from "../models/message.js";
+//const router = express.Router();
+import { Router as expressRouter } from 'express';
+export const router = expressRouter();
+import logger from '../logger.js';
+import * as Joi from 'joi'
 
 //Get all Message & GET with the ability to filter
-router.get("/", async (req, res, next) => {
+router.get("/", async (req, res) => {
+
+    let message = new Message(undefined, undefined, req.query.from_name, req.query.to_name, undefined, req.query.created_at, undefined);
+    const errorr = message.validateGet();
+    if (errorr) {
+        logger.logger.error(errorr)
+
+        res.status(400).json({
+            status: 'faild',
+            payload: errorr.message
+        });
+        return;
+    }
     try {
-        const from_name = req.query.from_name;
-        const to_name = req.query.to_name;
-        const createdat = req.query.created_at;
+        let messages = await getAllMessagesAsync(message);
+     
+        logger.logger.info('The Get was successful')
 
-        let messages = await messageslogic.getAllMessagesAsync(from_name, to_name, createdat);
-
-        if (messages) {
-            res.status(200).send(messages);
-        } else {
-            res.sendStatus(404);
-            return;
-        }
+        res.status(200).json({
+            status: 'ok',
+            payload: messages.rows
+        });
     }
     catch (err) {
-        res.status(500).send("failure...");
+        logger.logger.error(err)
+        res.status(500).json({
+            status: 'faild',
+            payload: err.message
+        });
     }
 });
 
 //Get one Message
 router.get("/:key", async (req, res) => {
     const key = req.params.key
-
     try {
-        let foundMessage = await messageslogic.getOneMessageAsync(key);
-        if (foundMessage) {
-            res.status(200).send(foundMessage);
-        } else {
-            res.sendStatus(404);
-            return;
-        }
+        let foundMessage = await getOneMessageAsync(key);
+        logger.logger.info('The Get was successful')
+
+        res.status(200).json({
+            status: 'ok',
+            payload: foundMessage
+        });
     }
     catch (err) {
-        res.status(500).send("failure...");
-    }
+        logger.logger.error(err)
 
+        res.status(500).json({
+            status: 'faild',
+            payload:foundMessage
+        });
+
+    }
 });
 
 //Add new Message
 router.post("/", async (req, res) => {
+
     try {
-
-        let message = new Message(undefined, req.body.key, req.body.from_name, req.body.to_name, req.body.message, req.body.created_at, req.body.updated_at);
-
-        let addMessage = await messageslogic.addOneMessageAsync(message);
-        if (addMessage) {
-            res.status(201).send(addMessage);
-        } else {
-            res.sendStatus(404);
+        let message = new Message(undefined, undefined, req.body.from_name, req.body.to_name, req.body.message, undefined, undefined);
+        const errorr = message.validatePost();
+        if (errorr) {
+            logger.logger.error(errorr)
+            res.status(400).json({
+                status: 'faild',
+                payload: errorr.message
+            });
             return;
         }
+       try {
+            let addMessage = await addOneMessageAsync(message);
+            logger.logger.info('The Pose was successful')
+
+            res.status(200).json({
+                status: 'ok'
+            });
+        } catch (err) {
+            logger.logger.error(err);
+            res.status(500).json({
+                status: 'faild',
+                payload: err.message
+            });
+        }
+
     }
     catch (err) {
-        res.status(500).send(err.message);
+        logger.logger.error(err);
+        res.status(500).json({
+            status: 'faild',
+            payload: err.message
+        });
     }
 });
 
 //Delet Message 
 router.delete("/:key", async (req, res) => {
+    const key = req.params.key;
     try {
-        const key = req.params.key;
-        let de = await messageslogic.deleteMessageAsync(key);
-        if (de) {
-            res.status(200).send(de);
-        } else {
-            res.sendStatus(404);
-            return;
-        }
+        let de = await deleteMessageAsync(key);
+        logger.logger.info('The Delete was successful')
+        res.status(200).json({
+            status: 'ok'
+        });
     }
     catch (err) {
-        res.status(500).send(err.message);
+        logger.logger.error(err);
+        res.status(500).json({
+            status: 'faild',
+            payload: err.message
+        });
     }
 });
 
-module.exports = router;
+
+
