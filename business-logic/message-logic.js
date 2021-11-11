@@ -1,12 +1,12 @@
 
 import { dal } from "../data-access-layer/dal.js";
 import moment from "moment";
-import  logger  from '../logger.js';
+import logger from '../logger.js';
 
 //Get All MessagesAsync 
 export async function getAllMessagesAsync(message) {
   try {
-    let sql = `SELECT * FROM MESSAGES`
+    let sql = `SELECT KEY,FROM_NAME,TO_NAME,MESSAGE FROM MESSAGES`
     let bindParams = {};
 
     if (message.from_name || message.to_name || message.created_at) {
@@ -48,7 +48,7 @@ export async function getAllMessagesAsync(message) {
 export const getOneMessageAsync = async (key) => {
   try {
     let bindParams = { key: key };
-    const sql = `SELECT * FROM messages WHERE KEY = :key`;
+    const sql = `SELECT KEY,FROM_NAME,TO_NAME,MESSAGE FROM messages WHERE KEY = :key`;
     let messages = await dal(sql, bindParams, null);
     return messages;
   }

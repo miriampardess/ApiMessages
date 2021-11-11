@@ -1,34 +1,11 @@
 import dotenv from 'dotenv';
 dotenv.config();
-
 import express from "express";
-import oracelClient from "./oracel-client.js";
 import { router } from "./controllers/message-controller.js";
-
-
-import  logger  from './logger.js';
+import logger from './logger.js';
 const server = express();
 
-oracel();
-
-async function oracel() {
-  try {
-    const oracelDb = oracelClient.OracledbClient;
-    if (!oracelDb) {
-    logger.logger.error('oracelDb Not Found')
-
-
-    } else {
-      serverAp();
-
-    }
-  }
-  catch (err) {
-    logger.logger.error(err);
-
-
-  }
-}
+serverAp();
 
 async function serverAp() {
   server.use(express.json());
@@ -38,10 +15,9 @@ async function serverAp() {
   server.use("*", (req, res) => {
     logger.logger.error(err)
     res.status(404).json({
-      status: 'Rout Not Found',
+      status: 'Route Not Found',
     });
   });
 }
-
-
-server.listen(1522, () => console.log("Listening on http://loclhost:1522"));
+let port = process.env.port ;
+server.listen(port, () => console.log(`Listening on http://loclhost: ${port}`));

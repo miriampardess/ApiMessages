@@ -8,25 +8,30 @@ const { Request, Response, NextFunction } = pkg;
 import pkg2 from '@hapi/joi';
 const { SchemaLike } = pkg2;
 export class Message {
-
-    constructor(id, Key, from_name, to_name, message, created_at, updated_at) {
-        this.id = id;
-        this.Key = Key;
-        this.from_name = from_name;
-        this.to_name = to_name;
-        this.message = message;
-        this.created_at = created_at;
-        this.updated_at = updated_at;
+    constructor(object) {
+        this.id = object.id;
+        this.Key = object.Key;
+        this.from_name = object.from_name;
+        this.to_name = object.to_name;
+        this.message = object.message;
+        this.created_at = object.created_at;
+        this.updated_at = object.updated_at;
     }
 
     validatePost() {
-            const result = postValidationSchema.validate(this, { abortEarly: false });
-            return result.error ? result.error.details.map(err => err.message) : null;
+        const result = postValidationSchema.validate(this, { abortEarly: true });
+        // throw new error(result.error ? result.error.details.map(err => err.message) : null);
+        //  return result.error ? result.error.details.map(err => err.message) : null;
+        return result.error ? result.error.message : null;
+
     }
     validateGet() {
-        const result = getValidationSchema.validate(this, { abortEarly: false });
-        return result.error ? result.error.details.map(err => err.message) : null;
-}
+        const result = getValidationSchema.validate(this, { abortEarly: true });
+        // throw new error(result.error ? result.error.details.map(err => err.message) : null);
+        // return result.error ? result.error.details.map(err => err.message) : null;
+        return result.error ? result.error.message : null;
+
+    }
 }
 const postValidationSchema = Joi.object({
     id: Joi.number(),
