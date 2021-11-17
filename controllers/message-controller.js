@@ -1,7 +1,7 @@
 //Brings and returns information from data bites
 import express from "express";
 //import { date } from "joi";
-import { getAllMessagesAsync, getOneMessageAsync, addOneMessageAsync, deleteMessageAsync } from "../business-logic/message-logic.js";
+import { getAllMessagesAsync, getOneMessageAsync, addOneMessageAsync, deleteMessageAsync, putOneMessageAsync } from "../business-logic/message-logic.js";
 import { Message } from "../models/message.js";
 //const router = express.Router();
 import { Router as expressRouter } from 'express';
@@ -67,7 +67,6 @@ router.get("/:key", async (req, res) => {
 
 //Add new Message
 router.post("/", async (req, res) => {
-
     try {
         let object = req.body;
         let message = new Message(object);
@@ -86,9 +85,8 @@ router.post("/", async (req, res) => {
             logger.logger.info('The command succeeded')
 
             res.status(200).json({
-                status: 'ok'//,
-               // message: 'The command succeeded'
-
+                status: 'ok',
+                 key: addMessage
             });
         } catch (err) {
             logger.logger.error(err);
@@ -113,10 +111,11 @@ router.delete("/:key", async (req, res) => {
     const key = req.params.key;
     try {
         let de = await deleteMessageAsync(key);
+
         logger.logger.info('The command succeeded')
         res.status(200).json({
             status: 'ok'//,
-           // message: 'The command succeeded'
+            // message: 'The command succeeded'
         });
     }
     catch (err) {
@@ -128,5 +127,34 @@ router.delete("/:key", async (req, res) => {
     }
 });
 
+//Put  Message
+router.put("/:key", async (req, res) => {
+    try {
+        let object = req.body;
+        object.key = req.params.key;
+        let message = new Message(object);
+
+        const errorr = message.validatePut();
+        if (errorr) {
+            logger.logger.error(errorr);
+            res.status(400).json({ status: 'Validation error', message: errorr });
+            return;
+        }
+        try {
+            let messagesToUpdate = await putOneMessageAsync(message);
+            //    let messagesToUpdate = await putOneMessageAsync(message);
+            res.status(200).json({ status: 'ok', message: req.params.key });//messagesToUpdate
+        }
+        catch (err) {
+            logger.logger.error(err);
+            res.status(404).json({ status: 'faild', message: err.message });
+        }
+    }
+    catch (err) {
+        logger.logger.error(err);
+
+        res.status(500).json({ status: 'faild', message: err.message });
+    }
+});
 
 

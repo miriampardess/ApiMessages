@@ -69,7 +69,7 @@ export async function addOneMessageAsync(message) {
     let bindParams = { Key: addKey, from_name: message.from_name, to_name: message.to_name, message: message.message, created_at: createdAt, updated_at: updatedAt }
     const sql = 'INSERT INTO MESSAGES(KEY,FROM_NAME,TO_NAME,MESSAGE,CREATED_AT,UPDATED_AT)VALUES(:Key, :from_Name, :to_name, :message, :created_at, :updated_at)';
     let info = await dal(sql, bindParams, "post");
-    return info;
+    return addKey;
   }
   catch (err) {
     throw new Error(err);
@@ -90,6 +90,23 @@ export async function deleteMessageAsync(key) {
 
   }
 }
+
+//Put One MessageAsync
+
+export async function putOneMessageAsync(message) {
+  try {
+    let bindParams = { Key: message.Key, from_name: message.from_name, to_name: message.to_name, message: message.message }
+    let sql = `Update MESSAGES SET FROM_NAME = :from_name,TO_NAME = :to_name,MESSAGE= :message WHERE Key =:Key`
+
+    let messages = await dal(sql, bindParams, null);
+    return messages;
+  }
+  catch (err) {
+    throw new Error(err);
+  }
+
+}
+
 //Create the key automatically
 function makeid(length) {
   var key = '';

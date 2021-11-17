@@ -10,7 +10,7 @@ const { SchemaLike } = pkg2;
 export class Message {
     constructor(object) {
         this.id = object.id;
-        this.Key = object.Key;
+        this.Key = object.key;
         this.from_name = object.from_name;
         this.to_name = object.to_name;
         this.message = object.message;
@@ -32,10 +32,25 @@ export class Message {
         return result.error ? result.error.message : null;
 
     }
+    validatePut() {
+        const result = putValidationSchema.validate(this, { abortEarly: true });
+        return result.error ? result.error.message : null;
+
+    }
 }
+const putValidationSchema = Joi.object({
+    id: Joi.number(),
+    Key:Joi.required(),
+    from_name: Joi.string().required().min(1).max(200),
+    to_name: Joi.string().required().min(1).max(200),
+    message: Joi.string().required(),
+    created_at: Joi.number(),
+    updated_at: Joi.number()
+})
+
 const postValidationSchema = Joi.object({
     id: Joi.number(),
-    Key: Joi.number(),
+    Key: Joi.string(),
     from_name: Joi.string().required().min(1).max(200),
     to_name: Joi.string().required().min(1).max(200),
     message: Joi.string().required(),
@@ -44,10 +59,10 @@ const postValidationSchema = Joi.object({
 })
 const getValidationSchema = Joi.object({
     id: Joi.number(),
-    Key: Joi.number(),
-    from_name: Joi.string().min(1).max(200),
-    to_name: Joi.string().min(1).max(200),
-    message: Joi.string(),
+    Key: Joi.number().required(),
+    from_name: Joi.string().min(1).max(200).required(),
+    to_name: Joi.string().min(1).max(200).required(),
+    message: Joi.string().required(),
     created_at: Joi.number(),
     updated_at: Joi.number()
 })

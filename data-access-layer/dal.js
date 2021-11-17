@@ -18,21 +18,15 @@ export const dal = async (sql, bindParams, fromPostDelet) => {
 
     try {
         let result;
-        //fromPostDelet- Database update
         if (fromPostDelet) {
-
             result = await connection.execute(sql, bindParams, { outFormat: oracledb.OBJECT, autoCommit: true });
         } else {
-
             result = await connection.execute(sql, bindParams, { outFormat: oracledb.OBJECT });
-
         }
         return result;
 
     }
     catch (err) {
-      //  logger.logger.error(err);
         throw new Error(err);
     }
 }
-

@@ -13,7 +13,7 @@ async function serverAp() {
   server.use("/api/messages", router);
 
   server.use("*", (req, res) => {
-    logger.logger.error(err)
+   logger.logger.error("Route Not Found");
     res.status(404).json({
       status: 'Route Not Found',
     });
